@@ -4,27 +4,111 @@ author: "Sophie Davies"
 date: "20/11/2020"
 output: html_document
 ---
+# Introduction
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, 
+                      warning = FALSE, fig.retina = 3)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r packages}
+library(tidyverse)
 ```
 
-## Including Plots
+# Methods
 
-You can also embed plots, for example:
+```{r importing data}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# define file name
+filesol <- "data-raw/Y101_Y102_Y201_Y202_Y101-5.csv"
+
+# skip first two lines
+sol <- read_csv(filesol, skip = 2) %>% 
+  janitor::clean_names()
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r tidying data}
+
+# filter out the bovine proteins and those proteins identified from fewer than 2 peptides
+
+sol <- sol %>% 
+  filter(str_detect(description, "OS=Homo sapiens")) %>% 
+  filter(x1pep == "x")
+
+# extract the genename from the description and put it in a column.
+
+sol <- sol %>%
+  mutate(genename =  str_extract(description,"GN=[^\\s]+") %>% 
+           str_replace("GN=", ""))
+
+# extract the top protein identifier from the accession column and put it in a column called protid.
+# the top protein identifier is the first Uniprot ID after the “1::” in the accession column.
+
+sol <- sol %>%
+  mutate(protid = str_extract(accession, "1::[^\\s]+") %>%
+           str_replace("1::", ""))
+
+# create a second dataframe, sol2 in which the protein abundances are in a single column, abundance and the cell lineage and replicate, lineage_rep, is indicated in another. All the other variables should also be in the new data frame.
+
+sol2 <- sol %>% pivot_longer(names_to = "lineage_rep",
+                             values_to = "abundance",
+                             cols = starts_with("y"))
+
+# create separate columns in `sol2` for the cell lineage and the replicate.
+sol2 <- sol2 %>%
+  extract(lineage_rep,
+          c("line", "rep"),
+          "(y[0-9]{3,4})\\_([a-c])")
+
+# write sol2 to file 
+
+file <-  "data/sol2.csv"
+write.table(sol2, 
+            file, 
+            quote = FALSE,
+            row.names = FALSE)
+
+names(sol2)
+```
+
+```{r new sol file}
+
+file <- "data-raw/sol.txt"
+sol_new <- read_table2(file)
+names(sol_new)
+
+tsol <- sol_new %>% 
+  select(-genename) %>% 
+  t() %>% 
+  data.frame()
+
+names(tsol) <- sol_new$genename
+
+tsol$sample <- row.names(tsol)
+
+tsol <- tsol %>% 
+  extract(sample, 
+          c("lineage","rep"),
+          "(Y[0-9]{3,4})\\_([A-C])")
+
+```
+
+```{r pca}
+
+
+pca <- tsol %>%
+  select(-c(lineage, rep)) %>%
+  prcomp(scale. = TRUE)
+
+summary(pca)
+
+pca$rotation
+
+pca_labelled <- data.frame(pca$x, lineage = tsol$lineage)
+
+pca_labelled %>% 
+  ggplot(aes(x = PC1, y = PC2, color = lineage)) +
+  geom_point()
+
+```

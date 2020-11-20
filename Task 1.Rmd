@@ -16,8 +16,6 @@ knitr::opts_chunk$set(echo = FALSE,
 library(tidyverse)
 library(GGally)
 library(Rtsne)
-# library(corrplot) # extra - not included in workshop
-# library(factoextra) # not included in workshop
 ```
 
 <!-- Workshop Task Description -->
@@ -81,11 +79,6 @@ pca_labelled <- data.frame(pca$x, variety_name = wheat_tidy$variety_name)
 pca_labelled %>% 
   ggplot(aes(x = PC1, y = PC2, color = variety_name)) +
   geom_point()
-
-# just using some other code to explore
-# pcavar <- get_pca_var(pca)
-# corrplot(pcavar$cos2, is.corr=FALSE)
-
 ```
 
 ```{r tSNE}
