@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = FALSE,
 ```{r loading packages}
 library(tidyverse)
 library(GGally)
+library(Rtsne)
 ```
 
 <!-- Workshop Task Description -->
@@ -62,5 +63,36 @@ wheat_tidy %>%
   select(-8) %>%
   ggpairs(aes(color = variety_name))
 
+```
+```{r pca}
 
+pca <- wheat_tidy %>%
+  select(-c(8:9)) %>%
+  prcomp(scale. = TRUE)
+
+summary(pca)
+
+pca$rotation
+
+pca_labelled <- data.frame(pca$x, variety_name = wheat_tidy$variety_name)
+
+pca_labelled %>% 
+  ggplot(aes(x = PC1, y = PC2, color = variety_name)) +
+  geom_point()
+
+```
+
+```{r tSNE}
+tsne <- wheat_tidy %>% 
+  select(-8:9) %>%
+  Rtsne(perplexity = 40,
+        check_duplicates = FALSE)
+
+dat <- data.frame(tsne$Y)
+dat %>% ggplot(aes(x = X1, y = X2)) +
+  geom_point(size=0.5)
+
+dat <- data.frame(dat, variety_name = wheat_tidy$variety_name)
+dat %>% ggplot(aes(x = X1, y = X2, colour = variety_name)) +
+  geom_point(size = 0.5)
 ```
