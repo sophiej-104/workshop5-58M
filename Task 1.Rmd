@@ -1,0 +1,50 @@
+---
+title: "Task 1"
+author: "Sophie Davies"
+date: "20/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.retina = 3)
+```
+
+<!-- Workshop Task Description -->
+
+<!-- The Wheat Seeds Dataset contains measurements of seed kernels from different varieties of wheat: Kama (1), Rosa (2) and Canadian (3). High quality visualization of the internal kernel structure was detected using a soft X-ray technique and 7 measurements were taken which are in this order in the file: -->
+
+<!-- Area. -->
+<!-- Perimeter. -->
+<!-- Compactness -->
+<!-- Length of kernel. -->
+<!-- Width of kernel. -->
+<!-- Asymmetry coefficient. -->
+<!-- Length of kernel groove. -->
+<!-- Investigate whether these variables might be useful to classifiy the species. -->
+
+```{r reading in the data}
+
+library(tidyverse)
+
+wheat <- read.table("data-raw/seeds_dataset.txt") 
+```
+
+```{r organising the data}
+# Adding column names
+
+colnames(wheat) <- c("Area", "Perimeter", "Compactness", "Length of kernel", "Width of kernel", "Asymmetry coefficient", "Length of kernel groove", "Variety")
+
+# Cleaning the column names and adding a column for names of the variety
+
+wheat_tidy <- wheat %>%
+  janitor::clean_names() %>%
+  mutate(variety_name = ifelse(variety == "1", "Kama",
+         ifelse(variety == "2", "Rosa",
+         ifelse(variety == "3", "Canadian", "NA"))))
+
+```
+
+
