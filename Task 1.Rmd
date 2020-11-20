@@ -12,6 +12,11 @@ knitr::opts_chunk$set(echo = FALSE,
                       fig.retina = 3)
 ```
 
+```{r loading packages}
+library(tidyverse)
+library(GGally)
+```
+
 <!-- Workshop Task Description -->
 
 <!-- The Wheat Seeds Dataset contains measurements of seed kernels from different varieties of wheat: Kama (1), Rosa (2) and Canadian (3). High quality visualization of the internal kernel structure was detected using a soft X-ray technique and 7 measurements were taken which are in this order in the file: -->
@@ -26,9 +31,6 @@ knitr::opts_chunk$set(echo = FALSE,
 <!-- Investigate whether these variables might be useful to classifiy the species. -->
 
 ```{r reading in the data}
-
-library(tidyverse)
-
 wheat <- read.table("data-raw/seeds_dataset.txt") 
 ```
 
@@ -47,4 +49,18 @@ wheat_tidy <- wheat %>%
 
 ```
 
+```{r exploring the data}
 
+wheat_summary <- wheat_tidy %>%
+  select(1:7) %>%
+  summary()
+
+wheat_summary 
+# No NAs
+
+wheat_tidy %>%
+  select(-8) %>%
+  ggpairs(aes(color = variety_name))
+
+
+```
